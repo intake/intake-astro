@@ -1,0 +1,18 @@
+Welcome to intake_astro's documentation!
+================================================
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   quickstart.rst
+   api.rst
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

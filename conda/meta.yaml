@@ -1,0 +1,38 @@
+package:
+   name: intake-astro
+   version: {{ GIT_DESCRIBE_TAG }}
+
+source:
+   path: ..
+git:
+  depth: false
+
+build:
+  number: {{ GIT_DESCRIBE_NUMBER }}
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+  noarch: python
+
+requirements:
+  build:
+    - python
+    - jinja2
+  run:
+    - intake>=0.2
+    - python
+    - scipy
+    - astropy
+
+test:
+  source_files:
+    - tests
+  requires:
+    - pytest
+  commands:
+    - py.test --verbose
+
+about:
+  home: https://github.com/ContinuumIO/intake-astro
+  license: BSD
+  license_file: LICENSE
+  summary: |
+    Astronomy plugins for Intake
