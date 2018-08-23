@@ -31,7 +31,9 @@ class FITSArraySource(DataSource):
             tuple like ('SCI', 2), get the second extension named 'SCI'.
         chunks: None or tuple of int
             size of blocks to use within each file; must specify all axes,
-            if using. If None, each file is one partition.
+            if using. If None, each file is one partition. Do not use chunks
+            for compressed data, and only use contiguous chunks for remote
+            data.
         storage_options: dics
             Parameters to pass on to storage backend
         """
