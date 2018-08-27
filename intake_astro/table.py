@@ -158,5 +158,13 @@ def _get_fits_header(fn, ext=0):
     with fn as f:
         from astropy.io.fits import open
         hdu = open(f)[ext]
-        return dict(hdu.header.items()), hdu.columns.dtype.descr, (
+        dt = hdu.columns.dtype.descr
+        dt2 = []
+        for i, (field, d) in enumerate(dt):
+            # TODO: may have other special types, perhaps in special function
+            if hdu.header['TFORM%i' % (i + 1)] == "L":
+                dt2.append((field, 'bool'))
+            else:
+                dt2.append((field, d))
+        return dict(hdu.header.items()), tuple(dt2), (
             hdu._nrows, len(hdu.columns))
