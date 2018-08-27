@@ -4,6 +4,11 @@ from . import __version__
 
 
 class FITSTableSource(DataSource):
+    """Read FITS tabular data into dataframes
+
+    For one or more FITS files, which can be local or remote, with support
+    for partitioning within files.
+    """
     name = 'fits_table'
     container = 'dataframe'
     version = __version__
@@ -11,6 +16,32 @@ class FITSTableSource(DataSource):
 
     def __init__(self, url, ext=0, chunksize=None, storage_options=None,
                  metadata=None):
+        """
+        Parameters
+        ----------
+        url: str or list of str
+            files to load. Can include protocol specifiers and/or glob
+            characters
+        ext: str or int
+            Extension to load. Normally 0 or 1.
+        chunksize: int or None
+            For partitioning within files, use this many rows per partition.
+            This is very inefficient for compressed files, and for remote
+            files, will require at least touching each file to discover the
+            number of rows, before even starting to read the data. Cannot be
+            used with FITS tables with a "heap", i.e., containing variable-
+            length arrays.
+        storage_options: dict or None
+            Additional keyword arguments to pass to the storage back-end.
+        metadata:
+            Arbitrary information to associate with this source.
+
+        After reading the schema, the source will have attributes:
+        ``header`` - the full FITS header of one of the files as a dict,
+        ``dtype`` - a numpy-like list of field/dtype string pairs,
+        ``shape`` - where the number of rows will only be known if using
+        partitioning or for a single file input.
+        """
         super(FITSTableSource, self).__init__(metadata)
         self.url = url
         self.ext = ext
@@ -30,6 +61,7 @@ class FITSTableSource(DataSource):
             dpart = dask.delayed(_get_fits_section)
             parts = []
             dtype = None
+            length = 0
             for part in self.files:
                 if self.chunks:
                     header, dtype, shape = _get_fits_header(part, self.ext)
@@ -37,17 +69,24 @@ class FITSTableSource(DataSource):
                     for start in range(0, l, self.chunks):
                         section = (start, min(start + self.chunks, l))
                         parts.append(dpart(part, self.ext, section))
+                    length += l
                 else:
                     if dtype is None:
                         header, dtype, shape = _get_fits_header(part, self.ext)
+                        if len(self.files) == 1:
+                            # if not sectioning, we don't try to find the total
+                            # number of rows, so we only know this for exactly
+                            # one file
+                            length = shape[0]
                     parts.append(dpart(part, self.ext, None))
-            self.header, self.dtype, self.shape = header, dtype, shape
+            self.header, self.dtype, self.shape = header, dtype, (
+                (length or None), shape[1])
 
-            self.df = dd.from_delayed(parts, prefix=name)
+            self.df = dd.from_delayed(parts, prefix=name, meta=dtype)
             self._schema = Schema(
                 dtype=self.dtype,
                 shape=self.shape,
-                extra_metadata=dict(self.header.items()),
+                extra_metadata=self.header,
                 npartitions=self.df.npartitions
             )
         return self._schema
@@ -119,5 +158,5 @@ def _get_fits_header(fn, ext=0):
     with fn as f:
         from astropy.io.fits import open
         hdu = open(f)[ext]
-        return hdu.header, hdu.columns.dtype.descr, (hdu._nrows,
-                                                     len(hdu.columns))
+        return dict(hdu.header.items()), hdu.columns.dtype.descr, (
+            hdu._nrows, len(hdu.columns))
