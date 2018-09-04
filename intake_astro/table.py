@@ -138,19 +138,14 @@ def _get_fits_section(fn, ext=0, section=None):
             data = raw_data.view(np.rec.recarray)
             hdu._init_tbdata(data)
             data = data.view(hdu._data_type)
+            data._coldefs = hdu.columns
+            data._character_as_bytes = hdu._character_as_bytes
 
-            # do in-place byteswapping (required for pandas to use data)
-            dtypes = OrderedDict(data.dtype.fields)
-            dt2 = []
-            for col, val in dtypes.items():
-                if not val[0].isnative:
-                    dt = val[0].newbyteorder()
-                    dtypes[col] = dt, 1
-                    data[col][:] = np.frombuffer(data[col].tobytes(), dtype=dt)
-                    dt2.append((col, dt))
-                else:
-                    dt2.append((col, val[0]))
-            df = pd.DataFrame(np.frombuffer(data.data, dtype=dt2))
+            # byteswapping by copy
+            out = np.empty(len(data), dtype=_dtypes(hdu))
+            for col in out.dtype.fields:
+                out[col][:] = data[col]
+            df = pd.DataFrame(out)
             return df
 
 
@@ -158,13 +153,20 @@ def _get_fits_header(fn, ext=0):
     with fn as f:
         from astropy.io.fits import open
         hdu = open(f)[ext]
-        dt = hdu.columns.dtype.descr
-        dt2 = []
-        for i, (field, d) in enumerate(dt):
-            # TODO: may have other special types, perhaps in special function
-            if hdu.header['TFORM%i' % (i + 1)] == "L":
-                dt2.append((field, 'bool'))
-            else:
-                dt2.append((field, d))
-        return dict(hdu.header.items()), tuple(dt2), (
+        return dict(hdu.header.items()), _dtypes(hdu), (
             hdu._nrows, len(hdu.columns))
+
+
+def _dtypes(hdu):
+    dt = hdu.columns.dtype.newbyteorder('=').descr
+    dt2 = []
+    for i, (field, d) in enumerate(dt):
+        # TODO: may have other special types, perhaps in special function
+        if hdu.header['TFORM%i' % (i + 1)] == "L":
+            dt2.append((field, '|b1'))
+        elif hdu.columns[field].bzero == 32768:
+            # convention for unsigned type
+            dt2.append((field, d.replace('i', 'u')))
+        else:
+            dt2.append((field, d))
+    return dt2
