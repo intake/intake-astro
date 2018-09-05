@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import copy
 from intake.source.base import DataSource, Schema
 from . import __version__
 
@@ -150,7 +151,7 @@ def _get_fits_section(fn, ext=0, section=None):
 
 
 def _get_fits_header(fn, ext=0):
-    with fn as f:
+    with copy.copy(fn) as f:
         from astropy.io.fits import open
         hdu = open(f)[ext]
         return dict(hdu.header.items()), _dtypes(hdu), (
