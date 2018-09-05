@@ -11,9 +11,6 @@ df = pd.DataFrame({'a': np.random.randint(0, 123412, size=1000),
                    'd': np.random.randint(0, 123, size=1000, dtype='u2')
                    }
                   )
-import dask
-
-dask.set_options(scheduler='sync')
 
 
 def test_simple(tmpdir):
