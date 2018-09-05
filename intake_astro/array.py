@@ -131,7 +131,7 @@ def _get_section(fn, ext=0, section=None, onefile=False):
     from astropy.io import fits
     import numpy as np
     with copy.copy(fn) as fi:
-        with fits.open(fi, memmap=False) as hdul:
+        with fits.open(fi, memmap=False, cache=False) as hdul:
             if section is None:
                 out = hdul[ext].data
             else:
@@ -147,8 +147,8 @@ def _get_header(fn, ext=0):
     """
     from astropy.io import fits
     from astropy.wcs import WCS
-    with fn as fi:
-        with fits.open(fi) as hdul:
+    with copy.copy(fn) as fi:
+        with fits.open(fi, memmap=False, cache=False) as hdul:
             hdu = hdul[ext]
             dtype = fits.hdu.image.BITPIX2DTYPE[hdu._bitpix]
             return hdu.header, dtype, hdu.shape, WCS(hdu)

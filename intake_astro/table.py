@@ -115,7 +115,7 @@ class FITSTableSource(DataSource):
 def _get_fits_section(fn, ext=0, section=None):
     import numpy as np
     import pandas as pd
-    with fn as f:
+    with copy.copy(fn) as f:
         if section is None:
             from astropy.table import Table
             t = Table.read(f, hdu=ext, format='fits')
@@ -125,7 +125,7 @@ def _get_fits_section(fn, ext=0, section=None):
             from astropy.io.fits import open
             from astropy.io.fits.hdu.table import _FormatP, _FormatQ
             # copied from hdu._get_tbdata()
-            hdus = open(f, memmap=False)
+            hdus = open(f, memmap=False, cache=False)
             hdu = hdus[ext]
             if (any(type(r) in (_FormatP, _FormatQ)
                     for r in hdu.columns._recformats) and
@@ -153,7 +153,7 @@ def _get_fits_section(fn, ext=0, section=None):
 def _get_fits_header(fn, ext=0):
     with copy.copy(fn) as f:
         from astropy.io.fits import open
-        hdu = open(f)[ext]
+        hdu = open(f, memmap=False, cache=False)[ext]
         return dict(hdu.header.items()), _dtypes(hdu), (
             hdu._nrows, len(hdu.columns))
 
