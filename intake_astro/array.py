@@ -1,3 +1,4 @@
+import copy
 from itertools import product, accumulate
 from intake.source.base import DataSource, Schema
 from . import __version__
@@ -129,7 +130,7 @@ def _get_section(fn, ext=0, section=None, onefile=False):
     """
     from astropy.io import fits
     import numpy as np
-    with fn as fi:
+    with copy.copy(fn) as fi:
         with fits.open(fi) as hdul:
             if section is None:
                 out = hdul[ext].data
