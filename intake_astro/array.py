@@ -131,7 +131,7 @@ def _get_section(fn, ext=0, section=None, onefile=False):
     from astropy.io import fits
     import numpy as np
     with copy.copy(fn) as fi:
-        with fits.open(fi) as hdul:
+        with fits.open(fi, memmap=False) as hdul:
             if section is None:
                 out = hdul[ext].data
             else:
