@@ -5,6 +5,33 @@ from . import __version__
 
 
 class FITSArraySource(DataSource):
+    """
+    Read one of more local or remote FITS files using Intake
+
+    At initialisation (when something calls ``._get_schema()``), the
+    header of the first file will be read and a delayed array constructed.
+    The properties ``header, dtype, shape, wcs`` will be populated from
+    that header, and no check is made to ensure that all files are
+    compatible.
+
+    Parameters
+    ----------
+    url: str or list of str
+        Location of the data file(s). May include glob characters; may
+        include protocol specifiers.
+    ext: int or str or tuple
+        Extension to probe. By default, is primary extension. Can either be
+        an integer referring to sequence number, or an extension name. If a
+        tuple like ('SCI', 2), get the second extension named 'SCI'.
+    chunks: None or tuple of int
+        size of blocks to use within each file; must specify all axes,
+        if using. If None, each file is one partition. Do not use chunks
+        for compressed data, and only use contiguous chunks for remote
+        data.
+    storage_options: dics
+        Parameters to pass on to storage backend
+    """
+
     name = 'fits_array'
     container = 'ndarray'
     version = __version__
@@ -12,32 +39,6 @@ class FITSArraySource(DataSource):
 
     def __init__(self, url, ext=0, chunks=None, storage_options=None,
                  metadata=None):
-        """
-        Read one of more local or remote FITS files using Intake
-
-        At initialisation (when something calls ``._get_schema()``), the
-        header of the first file will be read and a delayed array constructed.
-        The properties ``header, dtype, shape, wcs`` will be populated from
-        that header, and no check is made to ensure that all files are
-        compatible.
-
-        Parameters
-        ----------
-        url: str or list of str
-            Location of the data file(s). May include glob characters; may
-            include protocol specifiers.
-        ext: int or str or tuple
-            Extension to probe. By default, is primary extension. Can either be
-            an integer referring to sequence number, or an extension name. If a
-            tuple like ('SCI', 2), get the second extension named 'SCI'.
-        chunks: None or tuple of int
-            size of blocks to use within each file; must specify all axes,
-            if using. If None, each file is one partition. Do not use chunks
-            for compressed data, and only use contiguous chunks for remote
-            data.
-        storage_options: dics
-            Parameters to pass on to storage backend
-        """
         # TODO: implement case where set of extensions within a file is an axis
         super(FITSArraySource, self).__init__(metadata)
         self.url = url

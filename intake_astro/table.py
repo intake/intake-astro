@@ -9,6 +9,31 @@ class FITSTableSource(DataSource):
 
     For one or more FITS files, which can be local or remote, with support
     for partitioning within files.
+
+    Parameters
+    ----------
+    url: str or list of str
+        files to load. Can include protocol specifiers and/or glob
+        characters
+    ext: str or int
+        Extension to load. Normally 0 or 1.
+    chunksize: int or None
+        For partitioning within files, use this many rows per partition.
+        This is very inefficient for compressed files, and for remote
+        files, will require at least touching each file to discover the
+        number of rows, before even starting to read the data. Cannot be
+        used with FITS tables with a "heap", i.e., containing variable-
+        length arrays.
+    storage_options: dict or None
+        Additional keyword arguments to pass to the storage back-end.
+    metadata:
+        Arbitrary information to associate with this source.
+
+    After reading the schema, the source will have attributes:
+    ``header`` - the full FITS header of one of the files as a dict,
+    ``dtype`` - a numpy-like list of field/dtype string pairs,
+    ``shape`` - where the number of rows will only be known if using
+    partitioning or for a single file input.
     """
     name = 'fits_table'
     container = 'dataframe'
@@ -17,32 +42,6 @@ class FITSTableSource(DataSource):
 
     def __init__(self, url, ext=0, chunksize=None, storage_options=None,
                  metadata=None):
-        """
-        Parameters
-        ----------
-        url: str or list of str
-            files to load. Can include protocol specifiers and/or glob
-            characters
-        ext: str or int
-            Extension to load. Normally 0 or 1.
-        chunksize: int or None
-            For partitioning within files, use this many rows per partition.
-            This is very inefficient for compressed files, and for remote
-            files, will require at least touching each file to discover the
-            number of rows, before even starting to read the data. Cannot be
-            used with FITS tables with a "heap", i.e., containing variable-
-            length arrays.
-        storage_options: dict or None
-            Additional keyword arguments to pass to the storage back-end.
-        metadata:
-            Arbitrary information to associate with this source.
-
-        After reading the schema, the source will have attributes:
-        ``header`` - the full FITS header of one of the files as a dict,
-        ``dtype`` - a numpy-like list of field/dtype string pairs,
-        ``shape`` - where the number of rows will only be known if using
-        partitioning or for a single file input.
-        """
         super(FITSTableSource, self).__init__(metadata)
         self.url = url
         self.ext = ext
