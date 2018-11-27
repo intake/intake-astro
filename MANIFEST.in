@@ -1,5 +1,11 @@
 recursive-include . *.html
 recursive-include . *.csv
 recursive-include . *.yml
+recursive-include . *.yaml
+recursive-include . *.fits
+
 include versioneer.py
 include intake_astro/_version.py
+include LICENSE
+include README.rst
+include requirements.txt
