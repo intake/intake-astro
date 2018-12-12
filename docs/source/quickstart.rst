@@ -44,8 +44,8 @@ within files is also possible (only recommended for uncompressed input).
 Creating Catalog Entries
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To use, catalog entries must specify ``driver: `` with one of the two plugins
-available here, ``fits_table``, ``fits_array``. The data source specs will have the
+To use, catalog entries must specify ``driver:`` with one of the two plugins
+available here, ``fits_table`` or ``fits_array``. The data source specs will have the
 same parameters as the equivalent open functions. In the following example, the files might
 happen to be stored on amazon S3, to be accesses anonymously.
 
