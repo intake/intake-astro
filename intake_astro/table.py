@@ -55,9 +55,10 @@ class FITSTableSource(DataSource):
         import dask.dataframe as dd
         from dask.base import tokenize
         import dask
+        url = self._get_cache(self.url)[0]
         if self.df is None:
-            self.files = open_files(self.url, **self.storage_options)
-            name = 'fits-table-' + tokenize(self.url, self.chunks, self.ext)
+            self.files = open_files(url, **self.storage_options)
+            name = 'fits-table-' + tokenize(url, self.chunks, self.ext)
             dpart = dask.delayed(_get_fits_section)
             parts = []
             dtype = None

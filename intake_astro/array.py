@@ -52,11 +52,12 @@ class FITSArraySource(DataSource):
         from dask.bytes import open_files
         import dask.array as da
         from dask.base import tokenize
+        url = self._get_cache(self.url)[0]
         if self.arr is None:
-            self.files = open_files(self.url, **self.storage_options)
+            self.files = open_files(url, **self.storage_options)
             self.header, self.dtype, self.shape, self.wcs = _get_header(
                 self.files[0], self.ext)
-            name = 'fits-array-' + tokenize(self.url, self.chunks, self.ext)
+            name = 'fits-array-' + tokenize(url, self.chunks, self.ext)
             ch = self.chunks if self.chunks is not None else self.shape
             chunks = []
             for c, s in zip(ch, self.shape):
