@@ -88,7 +88,8 @@ class FITSArraySource(DataSource):
                     dask[(name,) + bits] = (
                         _get_section, self.files[0], self.ext, slices, True
                     )
-            self.arr = da.Array(dask, name, chunks, self.dtype, self.shape)
+            self.arr = da.Array(dask, name, chunks, dtype=self.dtype,
+                                shape=self.shape)
             self._schema = Schema(
                 dtype=self.dtype,
                 shape=self.shape,
