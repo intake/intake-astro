@@ -16,6 +16,10 @@ setup(
     license='BSD',
     py_modules=['intake_astro'],
     packages=find_packages(),
+    entry_points={
+        'intake.drivers': [
+            'fits_array = intake_astro.array:FITSArraySource',
+            'fits_table = intake_astro.table:FITSTableSource']},
     package_data={'': ['*.csv', '*.yml', '*.html']},
     include_package_data=True,
     install_requires=requires,
